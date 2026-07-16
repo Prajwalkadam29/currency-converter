@@ -58,16 +58,17 @@ pipeline {
                                         script {
                                             def scannerHome = tool 'sonar-scanner'
 
-                                            // 1. Compile the code first so SonarQube has the bytecode it needs
-                                            sh 'chmod +x mvnw && ./mvnw clean compile -DskipTests'
+                                            // Inject JAVA_HOME for Java 21 so Maven can compile the bytecode
+                                            withEnv(["JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64"]) {
+                                                sh 'chmod +x mvnw && ./mvnw clean compile -DskipTests'
+                                            }
 
-                                            // 2. Point SonarScanner to the newly created target/classes directory
                                             withSonarQubeEnv('sonarqube-prod') {
                                                 sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${env.APP_NAME}-${env.BRANCH_NAME} -Dsonar.sources=. -Dsonar.java.binaries=target/classes"
                                             }
                                         }
                                     }
-                                }
+                                }                }
                 stage('Quality Gate') {
                     steps {
                         timeout(time: 10, unit: 'MINUTES') {
