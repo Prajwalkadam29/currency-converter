@@ -1,7 +1,6 @@
 @Library('devsecops-shared-lib') _
 
 pipeline {
-    // Runs on a traditional VM/EC2 Jenkins agent equipped with Docker, Git, Trivy, Sonar-scanner, and Cosign.
     agent any
 
     options {
@@ -18,11 +17,9 @@ pipeline {
     }
 
     environment {
-        APP_NAME        = readAppConfig().name
+        // Only keep static variables here that don't depend on files in the repository
         ECR_REGISTRY    = "${env.AWS_ACCOUNT_ID}.dkr.ecr.${params.AWS_REGION}.amazonaws.com"
-        ECR_REPO        = "${ECR_REGISTRY}/${APP_NAME}"
         IMAGE_TAG       = "${(env.GIT_COMMIT ?: '00000000').take(8)}-${env.BUILD_NUMBER}"
-        IMAGE_REF       = "${ECR_REPO}:${IMAGE_TAG}"
         SCAN_REPORT_DIR = "reports"
     }
 
@@ -31,7 +28,18 @@ pipeline {
             steps {
                 checkout scm
                 script {
+                    // 1. Read git commit
                     env.GIT_COMMIT_SHORT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+
+                    // 2. NOW we read the config because the repo has been cloned!
+                    def appConfig = readAppConfig()
+                    env.APP_NAME  = appConfig.name
+                    env.APP_TYPE  = appConfig.appType
+
+                    // 3. Build the rest of our URLs dynamically
+                    env.ECR_REPO  = "${env.ECR_REGISTRY}/${env.APP_NAME}"
+                    env.IMAGE_REF = "${env.ECR_REPO}:${env.IMAGE_TAG}"
+
                     verifyCommitSignature(required: params.ENVIRONMENT == 'prod')
                 }
             }
@@ -48,7 +56,7 @@ pipeline {
                 stage('SonarQube') {
                     steps {
                         withSonarQubeEnv('sonarqube-prod') {
-                            sh "sonar-scanner -Dsonar.projectKey=${APP_NAME} -Dsonar.sources=. -Dsonar.branch.name=${env.BRANCH_NAME}"
+                            sh "sonar-scanner -Dsonar.projectKey=${env.APP_NAME} -Dsonar.sources=. -Dsonar.branch.name=${env.BRANCH_NAME}"
                         }
                     }
                 }
@@ -70,7 +78,8 @@ pipeline {
 
         stage('Build Artifact & Test') {
             steps {
-                buildArtifact(appType: readAppConfig().appType)
+                // Pass the appType we cached during checkout
+                buildArtifact(appType: env.APP_TYPE)
                 runTests()
             }
             post {
@@ -87,7 +96,6 @@ pipeline {
         stage('Build Container Image') {
             when { branch 'main' }
             steps {
-                // Uses standard docker build on the Jenkins VM
                 buildContainerImage(imageRef: env.IMAGE_REF, dockerfile: 'Dockerfile')
             }
         }
@@ -123,7 +131,7 @@ pipeline {
             when { branch 'main' }
             steps {
                 updateGitOpsManifest(
-                    appName: APP_NAME,
+                    appName: env.APP_NAME,
                     environment: params.ENVIRONMENT,
                     imageTag: env.IMAGE_TAG
                 )
@@ -135,16 +143,15 @@ pipeline {
         success {
             script {
                 def msg = (env.BRANCH_NAME != 'main') ?
-                    "${APP_NAME}: checks passed on branch ${env.BRANCH_NAME} (no image built)" :
-                    "${APP_NAME}:${IMAGE_TAG} handed off to GitOps for ${params.ENVIRONMENT} deployment."
+                    "${env.APP_NAME}: checks passed on branch ${env.BRANCH_NAME} (no image built)" :
+                    "${env.APP_NAME}:${env.IMAGE_TAG} handed off to GitOps for ${params.ENVIRONMENT} deployment."
                 notify(status: 'SUCCESS', message: msg)
             }
         }
         failure {
-            notify(status: 'FAILURE', message: "Pipeline failed for ${APP_NAME}. See console log.")
+            notify(status: 'FAILURE', message: "Pipeline failed for ${env.APP_NAME}. See console log.")
         }
         always {
-            // Crucial for VM agents: prevents credential/state leakage between builds
             cleanWs(deleteDirs: true, notFailBuild: true)
         }
     }
