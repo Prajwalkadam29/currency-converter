@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Converter</title>
+    <!-- Use a professional, highly readable sans-serif font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Modern CSS Variables for easy theming and consistency */
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --radius-md: 0.5rem;
+            --radius-lg: 1rem;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.2s ease-in-out;
+        }
+
+        /* Reset & Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        /* Main Card Container */
+        .converter-card {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 480px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 2.5rem;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header Styles */
+        .card-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .card-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-header p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            font-family: inherit;
+            color: var(--text-main);
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            transition: var(--transition);
+            outline: none;
+        }
+
+        /* Accessibility: Clear focus states */
+        input[type="number"]:focus, select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            background-color: var(--card-bg);
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.875rem;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        /* Results Display */
+        .result-container {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: var(--bg-color);
+            border-radius: var(--radius-md);
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .result-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--success-color);
+        }
+
+        .error-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #fef2f2;
+            color: var(--error-color);
+            border-radius: var(--radius-md);
+            text-align: center;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Responsive Design for smaller screens */
+        @media (max-width: 480px) {
+            .form-row {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            .converter-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="converter-card">
+    <div class="card-header">
+        <h2>Currency Exchange</h2>
+        <p>Get live, accurate conversion rates instantly</p>
+    </div>
+
+    <form th:action="@{/convert}" method="post">
+        <div class="form-group">
+            <label for="amount">Amount to Convert</label>
+            <input type="number" id="amount" name="amount" th:value="${amount}" min="0.01" step="0.01" placeholder="e.g. 100.00" required>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="from">From</label>
+                <select id="from" name="from">
+                    <option value="USD" th:selected="${from == 'USD'}">🇺🇸 USD - US Dollar</option>
+                    <option value="EUR" th:selected="${from == 'EUR'}">🇪🇺 EUR - Euro</option>
+                    <option value="GBP" th:selected="${from == 'GBP'}">🇬🇧 GBP - British Pound</option>
+                    <option value="INR" th:selected="${from == 'INR'}">🇮🇳 INR - Indian Rupee</option>
+                    <option value="JPY" th:selected="${from == 'JPY'}">🇯🇵 JPY - Japanese Yen</option>
+                    <option value="CAD" th:selected="${from == 'CAD'}">🇨🇦 CAD - Canadian Dollar</option>
+                    <option value="AUD" th:selected="${from == 'AUD'}">🇦🇺 AUD - Australian Dollar</option>
+                    <option value="CHF" th:selected="${from == 'CHF'}">🇨🇭 CHF - Swiss Franc</option>
+                    <option value="AED" th:selected="${from == 'AED'}">🇦🇪 AED - UAE Dirham</option>
+                    <option value="SGD" th:selected="${from == 'SGD'}">🇸🇬 SGD - Singapore Dollar</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="to">To</label>
+                <select id="to" name="to">
+                    <option value="INR" th:selected="${to == 'INR'}">🇮🇳 INR - Indian Rupee</option>
+                    <option value="USD" th:selected="${to == 'USD'}">🇺🇸 USD - US Dollar</option>
+                    <option value="EUR" th:selected="${to == 'EUR'}">🇪🇺 EUR - Euro</option>
+                    <option value="GBP" th:selected="${to == 'GBP'}">🇬🇧 GBP - British Pound</option>
+                    <option value="JPY" th:selected="${to == 'JPY'}">🇯🇵 JPY - Japanese Yen</option>
+                    <option value="CAD" th:selected="${to == 'CAD'}">🇨🇦 CAD - Canadian Dollar</option>
+                    <option value="AUD" th:selected="${to == 'AUD'}">🇦🇺 AUD - Australian Dollar</option>
+                    <option value="CHF" th:selected="${to == 'CHF'}">🇨🇭 CHF - Swiss Franc</option>
+                    <option value="AED" th:selected="${to == 'AED'}">🇦🇪 AED - UAE Dirham</option>
+                    <option value="SGD" th:selected="${to == 'SGD'}">🇸🇬 SGD - Singapore Dollar</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">Convert Currency</button>
+    </form>
+
+    <!-- Results Block -->
+    <div th:if="${result}" class="result-container">
+        <div class="result-label">Converted Amount</div>
+        <div class="result-value" th:text="${result}"></div>
+    </div>
+
+    <!-- Error Block -->
+    <div th:if="${error}" class="error-message" th:text="${error}"></div>
+</div>
+
+</body>
+</html>

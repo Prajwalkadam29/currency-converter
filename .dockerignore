@@ -1,0 +1,24 @@
+# Git
+.git
+.gitignore
+
+# Maven build output
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IDE and OS files
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+Thumbs.db
+
+# Environment variables (Security)
+.env
+*.properties.local
+
+# Documentation
+README.md
