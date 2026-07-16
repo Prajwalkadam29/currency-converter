@@ -55,8 +55,11 @@ pipeline {
             parallel {
                 stage('SonarQube') {
                     steps {
-                        withSonarQubeEnv('sonarqube-prod') {
-                            sh "sonar-scanner -Dsonar.projectKey=${env.APP_NAME} -Dsonar.sources=. -Dsonar.branch.name=${env.BRANCH_NAME}"
+                        script {
+                            def scannerHome = tool 'sonar-scanner'
+                                 withSonarQubeEnv('sonarqube-prod') {
+                                      sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${env.APP_NAME} -Dsonar.sources=. -Dsonar.branch.name=${env.BRANCH_NAME}"
+                                 }
                         }
                     }
                 }
