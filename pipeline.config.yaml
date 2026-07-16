@@ -1,0 +1,4 @@
+name: "currency-converter-app"
+appType: "maven"
+notify:
+  email: "prajwal.kadam2005@gmail.com"
