@@ -63,6 +63,7 @@ pipeline {
 
                                             // 2. Inject it securely and compile the code
                                             withEnv(["JAVA_HOME=${jdk21Home}", "PATH+JDK=${jdk21Home}/bin"]) {
+                                                sh 'echo JAVA_HOME=$JAVA_HOME && which java && java -version'
                                                 sh 'chmod +x mvnw && ./mvnw clean compile -DskipTests'
                                             }
 
