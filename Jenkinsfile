@@ -54,26 +54,16 @@ pipeline {
         stage('Static Analysis (SAST)') {
             parallel {
                 stage('SonarQube') {
-                                    steps {
-                                        script {
-                                            def scannerHome = tool 'sonar-scanner'
-
-                                            // 1. Tell Jenkins to retrieve the JDK 21 environment
-                                            def jdk21Home = tool name: 'jdk-21', type: 'hudson.model.JDK'
-
-                                            // 2. Inject it securely and compile the code
-                                            withEnv(["JAVA_HOME=${jdk21Home}", "PATH+JDK=${jdk21Home}/bin"]) {
-                                                sh 'echo JAVA_HOME=$JAVA_HOME && which java && java -version'
-                                                sh 'chmod +x mvnw && ./mvnw clean compile -DskipTests'
-                                            }
-
-                                            // 3. Run the scan
-                                            withSonarQubeEnv('sonarqube-prod') {
-                                                sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${env.APP_NAME}-${env.BRANCH_NAME} -Dsonar.sources=. -Dsonar.java.binaries=target/classes"
-                                            }
-                                        }
-                                    }
-                                }
+                    steps {
+                        script {
+                            def scannerHome = tool 'sonar-scanner'
+                            sh 'chmod +x mvnw && ./mvnw clean compile -DskipTests'
+                            withSonarQubeEnv('sonarqube-prod') {
+                                sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${env.APP_NAME}-${env.BRANCH_NAME} -Dsonar.sources=. -Dsonar.java.binaries=target/classes"
+                            }
+                        }
+                    }
+                }
                 stage('Quality Gate') {
                     steps {
                         timeout(time: 10, unit: 'MINUTES') {
