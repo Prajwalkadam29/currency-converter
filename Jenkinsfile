@@ -52,24 +52,21 @@ pipeline {
         }
 
         stage('Static Analysis (SAST)') {
-            parallel {
-                stage('SonarQube') {
-                    steps {
-                        script {
-                            def scannerHome = tool 'sonar-scanner'
-                            sh 'chmod +x mvnw && ./mvnw clean compile -DskipTests'
-                            withSonarQubeEnv('sonarqube-prod') {
-                                sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${env.APP_NAME}-${env.BRANCH_NAME} -Dsonar.sources=. -Dsonar.java.binaries=target/classes"
-                            }
-                        }
+            steps {
+                script {
+                    def scannerHome = tool 'sonar-scanner'
+                    sh 'chmod +x mvnw && ./mvnw clean compile -DskipTests'
+                    withSonarQubeEnv('sonarqube-prod') {
+                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${env.APP_NAME}-${env.BRANCH_NAME} -Dsonar.sources=. -Dsonar.java.binaries=target/classes"
                     }
                 }
-                stage('Quality Gate') {
-                    steps {
-                        timeout(time: 10, unit: 'MINUTES') {
-                            waitForQualityGate abortPipeline: true
-                        }
-                    }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
