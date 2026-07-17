@@ -141,19 +141,20 @@ pipeline {
     }
 
     post {
-        success {
-            script {
-                def msg = (env.BRANCH_NAME != 'main') ?
-                    "${env.APP_NAME}: checks passed on branch ${env.BRANCH_NAME} (no image built)" :
-                    "${env.APP_NAME}:${env.IMAGE_TAG} handed off to GitOps for ${params.ENVIRONMENT} deployment."
-                notify(status: 'SUCCESS', message: msg)
+            success {
+                script {
+                    def msg = (env.BRANCH_NAME != 'main') ?
+                        "${env.APP_NAME}: checks passed on branch ${env.BRANCH_NAME} (no image built)" :
+                        "${env.APP_NAME}:${env.IMAGE_TAG} handed off to GitOps for ${params.ENVIRONMENT} deployment."
+                    notify(status: 'SUCCESS', message: msg)
+                }
             }
-        }
-        failure {
-            notify(status: 'FAILURE', message: "Pipeline failed for ${env.APP_NAME}. See console log.")
-        }
-        always {
-            cleanWs(deleteDirs: true, notFailBuild: true)
-        }
+            failure {
+                notify(status: 'FAILURE', message: "Pipeline failed for ${env.APP_NAME}. See console log.")
+            }
+            // FIX: Changed from 'always' to 'cleanup' so the workspace isn't wiped before notifications are sent
+            cleanup {
+                cleanWs(deleteDirs: true, notFailBuild: true)
+            }
     }
 }
