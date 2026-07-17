@@ -12,7 +12,7 @@ pipeline {
     }
 
     parameters {
-        string(name: 'AWS_REGION', defaultValue: 'us-east-1', description: 'AWS region of the ECR registry')
+        string(name: 'AWS_REGION', defaultValue: 'ap-south-1', description: 'AWS region of the ECR registry')
         choice(name: 'ENVIRONMENT', choices: ['dev', 'staging', 'prod'], description: 'Environment to deploy to')
     }
 
