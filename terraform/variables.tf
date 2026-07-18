@@ -1,0 +1,14 @@
+variable "aws_region" { default = "ap-south-1" }
+variable "project_name" { default = "finacplus-cc" }
+variable "cluster_name" { default = "currency-converter-eks" }
+variable "vpc_cidr" { default = "10.0.0.0/16" }
+variable "cluster_version" { default = "1.30" }
+variable "node_instance_types" { default = ["t3.medium"] }
+variable "node_desired_size" { default = 2 }
+variable "node_min_size" { default = 1 }
+variable "node_max_size" { default = 3 }
+variable "ecr_repository_name" { default = "currency-converter-app" }
+variable "jenkins_instance_type" { default = "m7i-flex.large" }
+variable "jenkins_key_pair_name" { type = string }
+variable "jenkins_allowed_ssh_cidr" { type = string }
+variable "cosign_public_key_pem" { type = string }

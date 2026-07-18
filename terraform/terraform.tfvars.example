@@ -1,0 +1,9 @@
+aws_region               = "ap-south-1"
+jenkins_key_pair_name    = "YOUR_EC2_KEY_PAIR_NAME"
+jenkins_allowed_ssh_cidr = "0.0.0.0/0"
+cosign_public_key_pem    = <<-EOT
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8XF3L6juF7ZePqSdQe0jP7LPhtHi
+bKpg5N/oQLhsMFUCO3r+Xg9/D6fkOKUjpEsbiFZ7Z61Ab1aq7C830RQymA==
+-----END PUBLIC KEY-----
+EOT
