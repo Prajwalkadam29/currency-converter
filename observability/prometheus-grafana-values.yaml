@@ -1,0 +1,63 @@
+# Custom configuration for kube-prometheus-stack
+
+# ---------------------------------------------------------
+# GRAFANA CONFIGURATION
+# ---------------------------------------------------------
+grafana:
+  enabled: true
+
+  # Sets a static, predictable admin password for the case study evaluation
+  adminPassword: "finacplus-admin"
+
+  service:
+    # Exposes Grafana externally via an AWS Classic/Network Load Balancer
+    type: LoadBalancer
+    port: 80
+    targetPort: 3000
+
+  # (Optional) Pre-configure default dashboard provider settings
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: 'default'
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+
+# ---------------------------------------------------------
+# PROMETHEUS CONFIGURATION
+# ---------------------------------------------------------
+prometheus:
+  prometheusSpec:
+    # Allows Prometheus to automatically discover ServiceMonitors across ALL namespaces
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+
+    # ---------------------------------------------------------
+    # EXTERNAL SCRAPE CONFIGURATION (JENKINS)
+    # Scrapes the EC2 instance hosting your CI server
+    # ---------------------------------------------------------
+    additionalScrapeConfigs:
+      - job_name: 'jenkins-master'
+        # The default metrics endpoint exposed by the Jenkins Prometheus Plugin
+        metrics_path: '/prometheus/'
+        scrape_interval: 15s
+        static_configs:
+          - targets: ['<YOUR_JENKINS_PRIVATE_IP>:8080']
+            labels:
+              group: 'ci-cd'
+              environment: 'management'
+
+# ---------------------------------------------------------
+# ALERTMANAGER CONFIGURATION
+# ---------------------------------------------------------
+alertmanager:
+  # Enabled by default in the stack, configured for basic cluster alerts
+  enabled: true
+  service:
+    type: ClusterIP
