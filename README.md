@@ -74,14 +74,16 @@ Beyond the application itself, this project is backed by a complete DevSecOps pi
 
 ### Phase 1: Infrastructure Setup
 Terraform code provisioning the VPC, EKS cluster, Jenkins/SonarQube EC2 instance, ECR repository, and IRSA roles.
-📁 [`/terraform`](https://github.com/Prajwalkadam29/currency-converter/tree/main/terraform)
+- 📁 [`/terraform`](https://github.com/Prajwalkadam29/currency-converter/tree/main/terraform)
 
 ### Phase 2: CI/CD Setup & Multi-Environment Deployment
 - **CI on Jenkins** — pipeline logic, security gates (secrets scan, SAST, SCA, image scan), and image signing.
-  📁 [jenkins-shared-library](https://github.com/Prajwalkadam29/jenkins-shared-library)
+  
+    📁 [jenkins-shared-library](https://github.com/Prajwalkadam29/jenkins-shared-library)
 - **CD via GitOps** — Argo CD ApplicationSet and environment-specific manifests for dev/staging/prod.
-  📁 [gitops-config-cc-app](https://github.com/Prajwalkadam29/gitops-config-cc-app/)
+  
+    📁 [gitops-config-cc-app](https://github.com/Prajwalkadam29/gitops-config-cc-app/)
 
 ### Phase 3: Monitoring & Observability
 Prometheus, Grafana, and health-check configuration for the CI pipeline and the EKS cluster.
-📁 [`/observability`](https://github.com/Prajwalkadam29/currency-converter/tree/main/observability)
+- 📁 [`/observability`](https://github.com/Prajwalkadam29/currency-converter/tree/main/observability)
